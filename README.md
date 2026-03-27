@@ -1,16 +1,20 @@
 # Divvy-Bike-Usage-Analysis
-### **Executive Summary**
-This repository focuses on identifying the behavioral nuances between 'Annual Members' and 'Casual Riders' within the 5.7M+ record Divvy dataset. My specific contribution involved engineering the metric aggregation layer to distinguish utility-based commuting from leisure-based usage.
+**Lead Analyst:** Mohammad Hamza Piracha
 
-### **Technical Contributions**
-* **Advanced Aggregation:** Developed R scripts to summarize ride frequency and duration across multi-million row datasets.
-* **Trend Discovery:** Quantified the weekday 'Commuter Peak' vs. the weekend 'Leisure Spike,' providing data-driven evidence for bike rebalancing.
-* **Feature Integration:** Utilized cleaned data features (ride length, day of week) to build a comparative profile of user segments.
+### **Project Summary**
+This repository highlights my individual technical leadership in analyzing 5.7M+ records from Chicago's Divvy bike-share system. I served as the **Lead Data Engineer**, managing the end-to-end pipeline from raw data ingestion to advanced dimensionality reduction.
 
-### **Key Findings**
-* **Commuters (Members):** High frequency, short duration, focused on workdays (8 AM / 5 PM spikes).
-* **Leisure (Casual):** 2x increase in trip duration on weekends with a bell-curve peak in the afternoon.
+### **My Technical Contributions**
+* **Big Data Pipeline:** Engineered a robust R script to ingest and merge 12 separate monthly datasets (5.7M+ rows), implementing rigorous filtering to eliminate maintenance noise and test data.
+* **Dimensionality Reduction (PCA/t-SNE):** Personally executed PCA to determine that trip duration accounts for ~50% of dataset variance. Utilized t-SNE to visualize and validate high-dimensional clusters between 'Casual' and 'Member' segments (see `docs/MyContribution.pdf`).
+* **Behavioral Trend Discovery:** Developed the statistical logic to quantify the "Commuter vs. Leisure" divide, proving that annual members dominate weekday traffic while casual ridership spikes by 100%+ in duration on weekends.
+* **Feature Engineering:** Created high-value variables including `ride_length` (calculated from timestamps) and `day_of_week` to enable predictive modeling.
 
-### **Stack**
-* **Language:** R (tidyverse, ggplot2, lubridate)
-* **Dataset:** 5.7M+ records (Chicago Open Data)
+### **Visual Findings**
+My analysis resulted in two key visualizations (available in this repo):
+1. **Scree Plot:** Confirmed the importance of temporal features in predicting bike demand.
+2. **t-SNE Scatter Plot:** Demonstrated clear cluster separation, suggesting targeted marketing strategies for casual riders.
+
+### **Tech Stack**
+* **Language:** R
+* **Tools:** `tidyverse` (dplyr, ggplot2, lubridate), `FactoMineR` (PCA), `Rtsne` (t-SNE)

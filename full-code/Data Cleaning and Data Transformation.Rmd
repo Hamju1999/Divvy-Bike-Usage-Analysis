@@ -1,0 +1,252 @@
+---
+title: "Analyzing Divvy Bike Usage Patterns in Chicago"
+author: "Mohammad Hamza Piracha, Poshan Pandey, Usman Matheen"
+date: "2024-07-04"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+# Data Preparation, Cleaning, and Transformation
+
+## Data Preparation
+
+### Installing Libraries
+
+```{r}
+library(isotree)
+library(magrittr)
+library(dplyr)
+library(tidyr)
+library(lubridate)
+library(tidymodels)
+library(ggplot2)
+library(dbscan)
+```
+
+### Setting WD to dataset file and listing all dataset
+
+```{r}
+csv_files <- list.files(pattern = "*.csv")
+```
+
+### Reading and sorting dataframes
+
+```{r}
+data_list <- list()
+for (file in csv_files) {
+  file_path <- file.path("D:/Desktop/CSP-571-Proj/dataset", file)
+  data <- read.csv(file_path)
+  data_list[[file]] <- data
+}
+```
+
+### Merging data for all months into 1
+
+```{r}
+merged_data <- do.call(rbind, data_list)
+```
+
+### Saving the merged data as merged_data
+
+```{r}
+write.csv(merged_data, "D:/Desktop/CSP-571-Proj/dataset/merged_data.csv", row.names = FALSE)
+```
+
+## Data cleaning and Transformation
+
+### Data Cleaning
+
+#### Removing Unnecessary Columns
+
+```{r}
+necessary <- c("ride_id","rideable_type", "started_at", "ended_at", "start_station_name", "end_station_name", "member_casual")
+annual <- merged_data %>% select(all_of(necessary))
+```
+
+#### Removing Missing Values
+
+```{r}
+cleaned_annual <- annual %>% drop_na()
+dim(cleaned_annual)
+```
+
+#### Convert 'started_at' and 'ended_at' to datetime
+
+```{r}
+cleaned_annual <- cleaned_annual %>%
+  mutate(
+    started_at = ymd_hms(started_at),
+    ended_at = ymd_hms(ended_at)
+  )
+```
+
+#### Create new features: trip duration, day of the week, hour of the day
+
+```{r}
+cleaned_annual <- cleaned_annual %>%
+  mutate(
+    trip_duration = as.numeric(difftime(ended_at, started_at, units = "mins")),
+    day_of_week = wday(started_at, label = TRUE),
+    start_hour = hour(started_at)
+  )
+```
+
+#### Remove negative or zero trip durations
+
+```{r}
+cleaned_annual <- cleaned_annual %>%
+  filter(trip_duration > 0)
+```
+
+#### Handle outliers in trip duration (e.g., removing trips longer than 24 hours)
+
+```{r}
+cleaned_annual <- cleaned_annual %>%
+  filter(trip_duration <= 1440)
+```
+
+#### Check for consistency: 'ended_at' should be after 'started_at'
+
+```{r}
+cleaned_annual <- cleaned_annual %>%
+  filter(ended_at > started_at)
+dim(cleaned_annual)
+```
+
+#### Verifying cleaned data and saving it for further analysis
+
+```{r}
+dim(cleaned_annual)
+summary(cleaned_annual)
+write.csv(cleaned_annual, "D:/Desktop/CSP-571-Proj/dataset/cleaned_annual.csv", row.names = FALSE)
+```
+
+### Outlier Detection
+
+#### Z-score Method for outlier detection
+
+The Z-score method standardizes the dataset and identifies outliers based on a threshold, usually 3 standard deviations from the mean.
+
+```{r}
+# Calculate Z-scores
+cleaned_annual <- cleaned_annual %>%
+  mutate(z_score = (trip_duration - mean(trip_duration)) / sd(trip_duration))
+
+# Filter out rows with Z-scores greater than 3 or less than -3
+cleaned_annual <- cleaned_annual %>%
+  filter(abs(z_score) <= 3) %>%
+  select(-z_score)
+```
+
+#### Isolation Forest Method for outlier detection
+
+Isolation Forest is a machine learning algorithm that isolates observations by randomly selecting a feature and then randomly selecting a split value between the maximum and minimum values of the selected feature.
+
+```{r}
+#### Isolation Forest Method for outlier detection
+data_matrix <- as.matrix(cleaned_annual)
+
+# Fit Isolation Forest model
+iso_forest <- isolation.forest(data_matrix, ntrees = 100)
+
+# Predict outliers
+outlier_scores <- predict(iso_forest, data_matrix)
+
+# Set a threshold for outlier scores
+threshold <- 0.5
+
+# Filter out outliers
+cleaned_annual_isoforest <- cleaned_annual[outlier_scores < threshold, ]
+write.csv(cleaned_annual_isoforest, "D:/Desktop/CSP-571-Proj/dataset/cleaned_annual_isoforest.csv", row.names = FALSE)
+```
+
+### Data Transformation
+
+#### Normalization and Standardization
+
+```{r}
+# Load necessary libraries including dplyr
+library(dplyr)
+
+# Min-Max Normalization
+cleaned_annual_isoforest <- cleaned_annual_isoforest %>%
+  mutate(trip_duration_normalized = (trip_duration - min(trip_duration))/(max(trip_duration) - min(trip_duration)))
+
+# Standardization
+cleaned_annual_isoforest <- cleaned_annual_isoforest %>%
+  mutate(trip_duration_standardized = (trip_duration - mean(trip_duration)) / sd(trip_duration))
+```
+
+#### Log Transformation
+
+```{r}
+# Log Transformation
+cleaned_annual_isoforest <- cleaned_annual_isoforest %>%
+  mutate(trip_duration_log = log(trip_duration + 1))
+```
+
+#### Date and Time Features
+
+```{r}
+# Load necessary libraries including dplyr and lubridate
+library(dplyr)
+library(lubridate)
+
+# Update date and time features
+cleaned_annual_isoforest <- cleaned_annual_isoforest %>%
+  mutate(
+    start_date = as.Date(started_at),
+    start_month = lubridate::month(started_at, label = TRUE),
+    start_day = day(started_at),
+    start_hour = hour(started_at),
+    start_minute = minute(started_at),
+    end_date = as.Date(ended_at),
+    end_month = lubridate::month(ended_at, label = TRUE),
+    end_day = day(ended_at),
+    end_hour = hour(ended_at),
+    end_minute = minute(ended_at)
+  )
+```
+
+#### Feature Engineering
+
+```{r}
+# Load necessary packages
+library(dplyr)
+library(tidyr)
+library(lubridate)
+
+# Assuming cleaned_annual_isoforest is your cleaned and preprocessed data
+
+# Ensure rideable_type and member_casual are factors
+cleaned_annual_isoforest <- cleaned_annual_isoforest %>%
+  mutate(
+    rideable_type = as.factor(rideable_type),
+    member_casual = as.factor(member_casual)
+  )
+
+
+# Additional feature engineering
+transformed_data <- transformed_data %>%
+  mutate(
+    trip_duration_hours = trip_duration / 60,
+    time_of_day = case_when(
+      start_hour >= 5 & start_hour < 12 ~ "Morning",
+      start_hour >= 12 & start_hour < 17 ~ "Afternoon",
+      start_hour >= 17 & start_hour < 21 ~ "Evening",
+      TRUE ~ "Night"
+    ),
+    season = case_when(
+      month(started_at) %in% c(12, 1, 2) ~ "Winter",
+      month(started_at) %in% c(3, 4, 5) ~ "Spring",
+      month(started_at) %in% c(6, 7, 8) ~ "Summer",
+      month(started_at) %in% c(9, 10, 11) ~ "Fall"
+    )
+  )
+
+# Display the transformed dataset
+head(transformed_data)
+write.csv(transformed_data, "D:/Desktop/CSP-571-Proj/dataset/transformed_data.csv", row.names = FALSE)
+
+```

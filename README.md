@@ -36,7 +36,7 @@ reduction analysis:
   space.
 
 The clustering analysis (Elbow Method, Silhouette, Gap Statistic,
-K-Means) was a team contribution.
+K-Means) and distribution visualizations were team contributions.
 
 ## Key Findings
 
@@ -48,19 +48,46 @@ K-Means) was a team contribution.
   leisure and tourist usage patterns. Members show consistent weekday
   commuting behavior.
 
+## Visuals
+
+**PCA and t-SNE plots** (my contribution) are in
+`personal-contribution/docs/MyContribution.pdf`.
+
+**Distribution and clustering plots** (team contribution) are in
+`full-code/visuals/`:
+
+| File | Description |
+|---|---|
+| `violin_trip_duration.png` | Trip duration distribution by member type |
+| `rug_plot_trip_duration.png` | Trip duration density rug plot |
+| `scatterplot_matrix.png` | Scatterplot matrix - trip duration vs start hour |
+| `member_vs_casual_by_month.png` | Ride counts by month - casual vs member |
+| `member_vs_casual_by_season.png` | Ride counts by season - casual vs member |
+| `time_of_day_distribution.png` | Trip distribution by time of day |
+| `top10_start_stations.png` | Top 10 starting stations by trip count |
+| `top10_end_stations.png` | Top 10 ending stations by trip count |
+| `clustering_elbow_method.png` | Elbow method for optimal cluster count |
+| `clustering_silhouette.png` | Silhouette method for optimal cluster count |
+| `clustering_gap_statistic.png` | Gap statistic for optimal cluster count |
+| `clustering_kmeans_viz.png` | K-Means cluster visualization |
+| `cluster_scatter_start_hour.png` | Cluster scatter - start hour vs trip duration |
+| `cluster_scatter_day_of_week.png` | Cluster scatter - day of week vs trip duration |
+| `cluster_scatter_season.png` | Cluster scatter - season vs trip duration |
+| `cluster_scatter_time_of_day.png` | Cluster scatter - time of day vs trip duration |
+
 ## Repository Structure
 
 ```
 ├── full-code/
-│   ├── Data Cleaning and Data Transformation.Rmd
-│   ├── Data-Analysis-and-Modeling.Rmd
-│   ├── Divvy.R
-│   ├── Divvy2.R
-│   ├── visuals/               # All generated plots
-│   └── docs/                  # Project report, proposal, presentation
+│   ├── Data Cleaning and Data Transformation.Rmd  # Team pipeline
+│   ├── Data-Analysis-and-Modeling.Rmd             # Team analysis
+│   ├── Divvy.R                                    # ETL and cleaning
+│   ├── Divvy2.R                                   # Analysis and modeling
+│   ├── visuals/                                   # Team-generated plots
+│   └── docs/                                      # Report, proposal, presentation
 ├── personal-contribution/
 │   ├── ContributionCode.r     # My ETL pipeline and PCA/t-SNE code
-│   └── docs/MyContribution.pdf
+│   └── docs/MyContribution.pdf  # My PCA and t-SNE visual outputs
 └── README.md
 ```
 
@@ -68,7 +95,8 @@ K-Means) was a team contribution.
 
 - **Language:** R
 - **Libraries:** dplyr, tidyr, lubridate, ggplot2, FactoMineR,
-  factoextra, Rtsne, magrittr, dbscan, isotree, tidymodels
+  factoextra, Rtsne, magrittr, dbscan, isotree, tidymodels, GGally,
+  cluster
 
 ## Author
 

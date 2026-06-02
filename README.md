@@ -98,6 +98,9 @@ K-Means) and distribution visualizations were team contributions.
   factoextra, Rtsne, magrittr, dbscan, isotree, tidymodels, GGally,
   cluster
 
+## License
+[MIT](./LICENSE) © 2024 Mohammad Hamza Piracha
+
 ## Author
 
 **Mohammad Hamza Piracha** |
